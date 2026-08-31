@@ -9,43 +9,131 @@ function fn_absolute_url(string $path): string
     return $base . '/' . ltrim($path, '/');
 }
 
-/** Where members actually book. Config, not hardcoded, so it can move. */
-function fn_punchpass_url(): string
+/**
+ * Where members book and pay.
+ *
+ * PunchPass sends x-frame-options: sameorigin, so none of these can be embedded
+ * in the page — checked 2026-08-27. They have to be links.
+ */
+function fn_punchpass(string $which = 'url'): string
 {
-    return (string) (Database::config()['punchpass_url'] ?? 'https://fightnight.punchpass.com');
+    $c = Database::config();
+    return (string) match ($which) {
+        'classes' => $c['punchpass_classes_url'] ?? '',
+        'passes'  => $c['punchpass_passes_url'] ?? '',
+        default   => $c['punchpass_url'] ?? '',
+    };
+}
+
+/** One site setting. Cached per request inside SettingsRepository. */
+function fn_setting(string $key, string $default = ''): string
+{
+    static $repo = null;
+    if ($repo === null) {
+        $repo = new SettingsRepository(Database::connection());
+    }
+    return $repo->get($key, $default);
+}
+
+/** A phone number as a tel: link — the whole point on a phone. */
+function fn_tel_link(string $phone, string $label = ''): string
+{
+    $digits = preg_replace('/[^0-9+]/', '', $phone);
+    return '<a href="tel:' . htmlspecialchars($digits) . '">'
+        . htmlspecialchars($label !== '' ? $label : $phone) . '</a>';
+}
+
+function fn_e(?string $s): string
+{
+    return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
+}
+
+/** Paragraphs from a textarea, without letting raw HTML through. */
+function fn_paragraphs(?string $text): string
+{
+    if (!$text) {
+        return '';
+    }
+    $out = '';
+    foreach (preg_split('/\n\s*\n/', trim($text)) as $para) {
+        $out .= '<p>' . nl2br(fn_e(trim($para))) . '</p>';
+    }
+    return $out;
 }
 
 /**
- * The page wrapper: head, nav, footer.
+ * The page wrapper.
  *
- * Schedule and Membership point at PunchPass by design — see routes/web/pages.php.
+ * Schedule and Membership are outbound PunchPass links by design, not routes —
+ * PunchPass owns classes, bookings and memberships.
  */
-function fn_page_shell(string $title, string $metaDescription, string $body): string
+function fn_page_shell(string $title, string $metaDescription, string $body, string $active = ''): string
 {
-    $pp = htmlspecialchars(fn_punchpass_url());
+    $classes = fn_e(fn_punchpass('classes'));
+    $passes  = fn_e(fn_punchpass('passes'));
+    $phone   = fn_setting('phone');
+    $address = fn_setting('address');
+    $hours   = fn_setting('hours');
+    $mapUrl  = fn_setting('map_url');
+
+    $nav = [
+        '/'                  => ['Home', 'home'],
+        '/personal-training' => ['Personal Training', 'training'],
+        '/gallery'           => ['Gallery', 'gallery'],
+        $classes             => ['Schedule', 'schedule'],
+        $passes              => ['Membership', 'membership'],
+        '/contact'           => ['Contact', 'contact'],
+    ];
+    $navHtml = '';
+    foreach ($nav as $href => [$label, $key]) {
+        $external = str_starts_with($href, 'http');
+        $navHtml .= '<a href="' . fn_e($href) . '"'
+            . ($key === $active ? ' class="active"' : '')
+            . ($external ? ' rel="noopener"' : '')
+            . '>' . fn_e($label) . '</a>';
+    }
+
+    // The logo file is dropped in later; until then the wordmark is type.
+    $brand = is_file(__DIR__ . '/../../public/img/logo.png')
+        ? '<img src="/img/logo.png" alt="FightNight Boxing Club">'
+        : '<span>FIGHT NIGHT <em>BOXING CLUB</em></span>';
+
     return '<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>' . htmlspecialchars($title) . ' — FightNight Boxing Club</title>
-<meta name="description" content="' . htmlspecialchars($metaDescription) . '">
+<title>' . fn_e($title) . ' — FightNight Boxing Club</title>
+<meta name="description" content="' . fn_e($metaDescription) . '">
+<meta property="og:title" content="' . fn_e($title) . '">
+<meta property="og:description" content="' . fn_e($metaDescription) . '">
+<meta property="og:type" content="website">
 <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
 <header class="nav">
-  <a class="brand" href="/">FightNight Boxing Club</a>
-  <nav>
-    <a href="/coaches">Coaches</a>
-    <a href="/gallery">Gallery</a>
-    <a href="' . $pp . '" rel="noopener">Schedule</a>
-    <a href="' . $pp . '" rel="noopener">Membership</a>
-    <a href="/contact">Contact</a>
-  </nav>
+  <a class="brand" href="/">' . $brand . '</a>
+  <nav>' . $navHtml . '</nav>
 </header>
 <main>' . $body . '</main>
 <footer class="foot">
-  <p>&copy; ' . date('Y') . ' FightNight Boxing Club</p>
+  <div class="foot-grid">
+    <div>
+      <strong>FightNight Boxing Club</strong><br>
+      ' . ($mapUrl !== ''
+            ? '<a href="' . fn_e($mapUrl) . '" rel="noopener">' . fn_e($address) . '</a>'
+            : fn_e($address)) . '<br>
+      ' . fn_tel_link($phone) . '<br>
+      ' . fn_e($hours) . '
+    </div>
+    <div>
+      <a href="' . $classes . '" rel="noopener">Class schedule</a><br>
+      <a href="' . $passes . '" rel="noopener">Memberships</a><br>
+      <a href="/personal-training">Personal training</a><br>
+      <a href="/contact">Contact</a>
+    </div>
+  </div>
+  <p class="copy">&copy; ' . date('Y') . ' FightNight Boxing Club</p>
 </footer>
 </body>
 </html>';

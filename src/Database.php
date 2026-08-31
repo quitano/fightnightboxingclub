@@ -13,12 +13,14 @@ class Database
 {
     private const DEFAULTS = [
         'db_host' => '127.0.0.1',
-        'db_name' => 'fnbc_app',
+        'db_name' => 'fnboxing_club',
         'db_user' => 'root',
         'db_pass' => '',
         'env' => 'development',
         'site_url' => 'http://localhost:8090',
         'punchpass_url' => 'https://fightnight.punchpass.com',
+        'punchpass_classes_url' => 'https://fightnight.punchpass.com/classes',
+        'punchpass_passes_url' => 'https://fightnight.punchpass.com/passes',
         // Named zones are not loaded in MySQL on the droplet, so the session
         // offset is set numerically on connect — same lesson as fightnights.
         'timezone' => 'America/New_York',
