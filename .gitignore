@@ -1,0 +1,5 @@
+/vendor/
+/public/uploads/*
+!/public/uploads/.gitkeep
+/src/config.local.php
+*.log

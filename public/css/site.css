@@ -1,0 +1,18 @@
+/* Placeholder styling only — the real design comes once the schema and
+   content are settled. Enough to see structure without squinting. */
+:root { --ink:#0d1b2e; --gold:#d4a017; --paper:#f5f4f1; }
+* { box-sizing: border-box; }
+body { margin:0; font:16px/1.6 system-ui, sans-serif; color:var(--ink); background:var(--paper); }
+.nav { display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;
+       padding:1rem 1.5rem; background:var(--ink); }
+.brand { color:#fff; font-weight:700; text-decoration:none; }
+.nav nav { display:flex; gap:1.25rem; }
+.nav a { color:rgba(255,255,255,.8); text-decoration:none; }
+.nav a:hover { color:var(--gold); }
+main { max-width:1000px; margin:0 auto; padding:2rem 1.5rem; }
+.hero h1 { font-size:2.5rem; margin:0 0 .5rem; }
+.lead { font-size:1.15rem; color:#555; }
+.btn { display:inline-block; margin-top:1rem; padding:.75rem 1.5rem;
+       background:var(--gold); color:var(--ink); font-weight:700;
+       text-decoration:none; border-radius:6px; }
+.foot { padding:2rem 1.5rem; color:#777; font-size:.9rem; }
