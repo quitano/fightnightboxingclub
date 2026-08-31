@@ -26,7 +26,13 @@ return function ($app, $coaches, $promotions, $memberships, $photos) {
         $html .= '<section class="hero">
             <h1>' . fn_e(fn_setting('tagline', "WE'RE IN YOUR CORNER!")) . '</h1>
             <p class="lead">' . fn_e(fn_setting('intro')) . '</p>
-            <p class="lead">TXT or Call: ' . fn_tel_link(fn_setting('phone')) . '</p>
+            <p class="lead contact-line">
+                TXT or Call: ' . fn_tel_link(fn_setting('phone')) . '<br>
+                ' . (fn_setting('map_url') !== ''
+                    ? '<a href="' . fn_e(fn_setting('map_url')) . '" rel="noopener">'
+                      . fn_e(fn_setting('address')) . '</a>'
+                    : fn_e(fn_setting('address'))) . '
+            </p>' . '
             <a class="btn" href="' . fn_e(fn_punchpass('passes')) . '" rel="noopener">'
             . fn_e(fn_setting('cta_label', 'START TODAY!')) . '</a>
         </section>';
@@ -192,6 +198,10 @@ return function ($app, $coaches, $promotions, $memberships, $photos) {
                     : fn_e(fn_setting('address'))) . '</p>
                 <h3>Call or text</h3>
                 <p>' . fn_tel_link(fn_setting('phone')) . '</p>
+                ' . (fn_setting('email') !== ''
+                    ? '<h3>Email</h3><p><a href="mailto:' . fn_e(fn_setting('email')) . '">'
+                      . fn_e(fn_setting('email')) . '</a></p>'
+                    : '') . '
                 <h3>Hours</h3>
                 <p>' . fn_e(fn_setting('hours')) . '</p>
               </div>

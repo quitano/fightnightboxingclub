@@ -75,6 +75,7 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
     $address = fn_setting('address');
     $hours   = fn_setting('hours');
     $mapUrl  = fn_setting('map_url');
+    $email   = fn_setting('email');
 
     $nav = [
         '/'                  => ['Home', 'home'],
@@ -124,6 +125,7 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
             ? '<a href="' . fn_e($mapUrl) . '" rel="noopener">' . fn_e($address) . '</a>'
             : fn_e($address)) . '<br>
       ' . fn_tel_link($phone) . '<br>
+      ' . ($email !== '' ? '<a href="mailto:' . fn_e($email) . '">' . fn_e($email) . '</a><br>' : '') . '
       ' . fn_e($hours) . '
     </div>
     <div>

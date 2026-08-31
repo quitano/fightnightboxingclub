@@ -135,6 +135,7 @@ INSERT INTO settings (setting_key, setting_value) VALUES
     ('tagline',    "WE'RE IN YOUR CORNER!"),
     ('intro',      'The premier boxing club of WNY! Bridge the gap between boxing & fitness.'),
     ('phone',      '716.299.8797'),
+    ('email',      'info@fightnights.com'),
     ('address',    '2421 Hyde Park Blvd, Niagara Falls, NY 14305'),
     -- Every day is the same, so one line rather than seven rows. If that ever
     -- stops being true this becomes a per-day structure.
