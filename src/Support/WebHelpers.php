@@ -35,6 +35,22 @@ function fn_setting(string $key, string $default = ''): string
     return $repo->get($key, $default);
 }
 
+/**
+ * Classes that have earned their own nav tab.
+ *
+ * The shell is a plain function with no repository handy, and the result is
+ * cached in ClassRepository, so this stays one query per request however many
+ * times the nav is rendered.
+ */
+function fn_nav_classes(): array
+{
+    static $repo = null;
+    if ($repo === null) {
+        $repo = new ClassRepository(Database::connection());
+    }
+    return $repo->navClasses();
+}
+
 /** A phone number as a tel: link — the whole point on a phone. */
 function fn_tel_link(string $phone, string $label = ''): string
 {
@@ -69,7 +85,7 @@ function fn_paragraphs(?string $text): string
  */
 function fn_page_shell(string $title, string $metaDescription, string $body, string $active = ''): string
 {
-    $classes = fn_e(fn_punchpass('classes'));
+    $classesUrl = fn_e(fn_punchpass('classes'));
     $passes  = fn_e(fn_punchpass('passes'));
     $phone   = fn_setting('phone');
     $address = fn_setting('address');
@@ -77,11 +93,20 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
     $mapUrl  = fn_setting('map_url');
     $email   = fn_setting('email');
 
-    $nav = [
-        '/'                  => ['Home', 'home'],
+    $nav = ['/' => ['Home', 'home']];
+
+    // Any class flagged show_in_nav earns its own tab — Kids Boxing was the ask,
+    // but it is a flag rather than a hardcoded slug so the next one is free.
+    // Cached inside the repository, so this costs one query per request.
+    foreach (fn_nav_classes() as $c) {
+        $nav['/classes/' . $c['slug']] = [$c['name'], 'class-' . $c['slug']];
+    }
+
+    $nav += [
+        '/classes'           => ['Classes', 'classes'],
         '/personal-training' => ['Personal Training', 'training'],
         '/gallery'           => ['Gallery', 'gallery'],
-        $classes             => ['Schedule', 'schedule'],
+        $classesUrl          => ['Schedule', 'schedule'],
         $passes              => ['Membership', 'membership'],
         '/contact'           => ['Contact', 'contact'],
     ];
@@ -129,8 +154,9 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
       ' . fn_e($hours) . '
     </div>
     <div>
-      <a href="' . $classes . '" rel="noopener">Class schedule</a><br>
+      <a href="' . $classesUrl . '" rel="noopener">Class schedule</a><br>
       <a href="' . $passes . '" rel="noopener">Memberships</a><br>
+      <a href="/classes">Classes</a><br>
       <a href="/personal-training">Personal training</a><br>
       <a href="/contact">Contact</a>
     </div>

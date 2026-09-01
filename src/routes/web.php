@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-return function ($app, $coaches, $promotions, $memberships, $photos) {
-    (require __DIR__ . '/web/pages.php')($app, $coaches, $promotions, $memberships, $photos);
+return function ($app, $repos) {
+    (require __DIR__ . '/web/pages.php')($app, $repos);
 };

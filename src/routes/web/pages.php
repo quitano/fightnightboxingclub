@@ -9,7 +9,13 @@ declare(strict_types=1);
  * PunchPass, which owns classes, bookings and memberships. Reproducing any of
  * it here would create a second member list that disagrees with the first.
  */
-return function ($app, $coaches, $promotions, $memberships, $photos) {
+return function ($app, $repos) {
+    $coaches     = $repos['coaches'];
+    $promotions  = $repos['promotions'];
+    $memberships = $repos['memberships'];
+    $photos      = $repos['photos'];
+    $classes     = $repos['classes'];
+
 
     /* ---------------------------------------------------------------- home */
     $app->get('/', function ($request, $response) use ($promotions, $memberships) {
@@ -146,6 +152,73 @@ return function ($app, $coaches, $promotions, $memberships, $photos) {
             'Personal boxing and fitness training at FightNight Boxing Club, Niagara Falls NY.',
             $html,
             'training'
+        ));
+        return $response;
+    });
+
+
+    /* ------------------------------------------------------------- classes */
+    $app->get('/classes', function ($request, $response) use ($classes) {
+        $list = $classes->published();
+        $html = '<h1>Classes</h1>';
+        if (!$list) {
+            $html .= '<p class="muted">Class details are on their way.</p>';
+        } else {
+            $html .= '<div class="promo-grid">';
+            foreach ($list as $c) {
+                $html .= '<article class="promo">';
+                if (!empty($c['photo_path'])) {
+                    $html .= '<img src="' . fn_e($c['photo_path']) . '" alt="' . fn_e($c['name']) . '" loading="lazy">';
+                }
+                $html .= '<div class="promo-body"><h3>' . fn_e($c['name']) . '</h3>';
+                $age = ClassRepository::ageLabel($c);
+                if ($age !== '') {
+                    $html .= '<p class="agetag">' . fn_e($age) . '</p>';
+                }
+                if (!empty($c['summary'])) {
+                    $html .= '<p>' . fn_e($c['summary']) . '</p>';
+                }
+                $html .= '<a class="btn btn-sm" href="/classes/' . fn_e($c['slug']) . '">Read more</a>';
+                $html .= '</div></article>';
+            }
+            $html .= '</div>';
+        }
+        $response->getBody()->write(fn_page_shell(
+            'Classes', 'What each class at FightNight Boxing Club involves.', $html, 'classes'
+        ));
+        return $response;
+    });
+
+    $app->get('/classes/{slug}', function ($request, $response, $args) use ($classes) {
+        $c = $classes->findBySlug((string) $args['slug']);
+        if (!$c) {
+            $response->getBody()->write(fn_page_shell('Not found', '', '<h1>Not found</h1>
+                <p class="muted">That class does not exist. <a href="/classes">See all classes</a>.</p>'));
+            return $response->withStatus(404);
+        }
+        $html = '<h1>' . fn_e($c['name']) . '</h1>';
+        $age = ClassRepository::ageLabel($c);
+        if ($age !== '') {
+            $html .= '<p class="agetag big">' . fn_e($age) . '</p>';
+        }
+        if (!empty($c['summary'])) {
+            $html .= '<p class="lead">' . fn_e($c['summary']) . '</p>';
+        }
+        if (!empty($c['photo_path'])) {
+            $html .= '<img class="classhero" src="' . fn_e($c['photo_path']) . '" alt="' . fn_e($c['name']) . '">';
+        }
+        $html .= fn_paragraphs($c['description'] ?? '');
+        // Booking goes to this class's own PunchPass page when it has one, and
+        // to the general schedule otherwise.
+        $book = !empty($c['punchpass_url']) ? $c['punchpass_url'] : fn_punchpass('classes');
+        $html .= '<a class="btn" href="' . fn_e($book) . '" rel="noopener">Book this class</a>';
+        $html .= '<p class="muted" style="margin-top:2rem;"><a href="/classes">← All classes</a></p>';
+
+        $response->getBody()->write(fn_page_shell(
+            $c['name'],
+            $c['summary'] ?: ($c['name'] . ' at FightNight Boxing Club.'),
+            $html,
+            'classes'
         ));
         return $response;
     });
