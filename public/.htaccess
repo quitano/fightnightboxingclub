@@ -1,0 +1,18 @@
+# Send every request that is not a real file or directory to Slim.
+#
+# In the repo on purpose. PHP's built-in dev server does this routing on its
+# own, so the site works locally without it — and on Apache every page except
+# the home page would 404. (fightnights.com has this file only on the server,
+# not in git, which is how that gap goes unnoticed.)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# The config file lives outside public/, but say no loudly in case a server is
+# ever pointed at the wrong directory.
+<FilesMatch "^(config\.local\.php|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>
