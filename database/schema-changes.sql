@@ -47,3 +47,8 @@ CREATE TABLE classes (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 CREATE INDEX idx_classes_published ON classes (is_published, sort_order);
+
+-- Per-login gallery access (2026-09-14). Kristen runs the photo gallery but
+-- should not see settings, promotions or anyone else's profile, so it is a
+-- switch on the one account rather than something every coach gets.
+ALTER TABLE users ADD COLUMN can_manage_photos TINYINT(1) NOT NULL DEFAULT 0 AFTER coach_id;

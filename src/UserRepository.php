@@ -37,8 +37,8 @@ class UserRepository
     public function create(array $d): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO users (username, password_hash, display_name, email, role, coach_id)
-             VALUES (:u, :h, :dn, :em, :role, :cid)'
+            'INSERT INTO users (username, password_hash, display_name, email, role, coach_id, can_manage_photos)
+             VALUES (:u, :h, :dn, :em, :role, :cid, :photos)'
         );
         $stmt->execute([
             'u'    => $d['username'],
@@ -49,6 +49,7 @@ class UserRepository
             // A coach account without a coach_id could edit nothing at all, so
             // the form insists on one; this is the last guard.
             'cid'  => !empty($d['coach_id']) ? (int) $d['coach_id'] : null,
+            'photos' => !empty($d['can_manage_photos']) ? 1 : 0,
         ]);
         return (int) $this->db->lastInsertId();
     }
@@ -56,12 +57,13 @@ class UserRepository
     /** Password is only touched when a new one was actually typed. */
     public function update(int $id, array $d): void
     {
-        $sql = 'UPDATE users SET display_name = :dn, email = :em, role = :role, coach_id = :cid';
+        $sql = 'UPDATE users SET display_name = :dn, email = :em, role = :role, coach_id = :cid, can_manage_photos = :photos';
         $params = [
             'dn'   => $d['display_name'] ?: null,
             'em'   => $d['email'] ?: null,
             'role' => $d['role'] === Auth::ROLE_ADMIN ? Auth::ROLE_ADMIN : Auth::ROLE_COACH,
             'cid'  => !empty($d['coach_id']) ? (int) $d['coach_id'] : null,
+            'photos' => !empty($d['can_manage_photos']) ? 1 : 0,
             'id'   => $id,
         ];
         if (!empty($d['password'])) {

@@ -38,6 +38,7 @@ class Auth
         $_SESSION['display']  = $user['display_name'] ?: $user['username'];
         $_SESSION['role']     = $user['role'] ?: self::ROLE_COACH;
         $_SESSION['coach_id'] = $user['coach_id'] !== null ? (int) $user['coach_id'] : null;
+        $_SESSION['photos']   = !empty($user['can_manage_photos']);
     }
 
     public static function logout(): void
@@ -81,6 +82,13 @@ class Auth
     {
         self::start();
         return isset($_SESSION['coach_id']) ? (int) $_SESSION['coach_id'] : null;
+    }
+
+    /** Admins, plus any coach login given the gallery switch. */
+    public static function canManagePhotos(): bool
+    {
+        self::start();
+        return self::isAdmin() || !empty($_SESSION['photos']);
     }
 
     /**

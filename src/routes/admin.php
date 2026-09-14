@@ -12,7 +12,8 @@ return function ($app, $repos) {
      * Deny by default.
      *
      * Everything under /admin needs a login except the login page itself. A
-     * coach is allowed no further than their own profile — the allowlist below
+     * coach is allowed no further than their own profile, plus the gallery when
+     * their login has that switch on — the allowlist below
      * is the only thing a non-admin can reach, and the routes check ownership
      * again before saving, because a form that is never rendered can still be
      * posted to.
@@ -33,9 +34,9 @@ return function ($app, $repos) {
 
         if (!Auth::isAdmin()) {
             $coachId = Auth::coachId();
-            $allowed = $coachId !== null && (
-                preg_match('#^/admin/coaches/' . $coachId . '(/|$)#', $path) === 1
-            );
+            $allowed = ($coachId !== null
+                    && preg_match('#^/admin/coaches/' . $coachId . '(/|$)#', $path) === 1)
+                || (Auth::canManagePhotos() && preg_match('#^/admin/photos(/|$)#', $path) === 1);
             if (!$allowed) {
                 $r = new \Slim\Psr7\Response();
                 // Send them where they can actually go rather than a dead end.

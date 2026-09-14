@@ -25,6 +25,9 @@ function fn_admin_shell(string $title, string $body, string $active = '', string
         ];
     } elseif (Auth::coachId()) {
         $items = ['/admin/coaches/' . Auth::coachId() . '/edit' => ['My Profile', 'coaches']];
+        if (Auth::canManagePhotos()) {
+            $items['/admin/photos'] = ['Gallery', 'photos'];
+        }
     }
 
     $nav = '';

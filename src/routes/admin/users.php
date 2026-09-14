@@ -10,13 +10,15 @@ return function ($app, $repos) {
 
         $html = '<p><a class="btn" href="/admin/users/new">Add a login</a></p>'
             . '<p class="muted">A <strong>coach</strong> login can edit one profile and nothing else — '
-            . 'not other coaches, not promotions, not settings. An <strong>admin</strong> can do everything.</p>'
-            . '<table><thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Profile</th><th>Last login</th><th></th></tr></thead><tbody>';
+            . 'not other coaches, not promotions, not settings. Tick <em>gallery</em> on a coach login to let '
+            . 'them manage photos as well. An <strong>admin</strong> can do everything.</p>'
+            . '<table><thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Profile</th><th>Gallery</th><th>Last login</th><th></th></tr></thead><tbody>';
         foreach ($rows as $u) {
             $html .= '<tr><td><strong>' . fn_e($u['username']) . '</strong></td>'
                 . '<td>' . fn_e($u['display_name'] ?? '') . '</td>'
                 . '<td>' . fn_e($u['role']) . '</td>'
                 . '<td>' . fn_e($u['coach_name'] ?? '—') . '</td>'
+                . '<td>' . ($u['role'] === 'admin' || !empty($u['can_manage_photos']) ? 'Yes' : '—') . '</td>'
                 . '<td>' . fn_e($u['last_login_at'] ?? 'never') . '</td>'
                 . '<td class="right"><a href="/admin/users/' . (int) $u['id'] . '/edit">Edit</a></td></tr>';
         }
@@ -53,6 +55,8 @@ return function ($app, $repos) {
             . '<div class="f"><label for="f_coach">Which profile</label><select id="f_coach" name="coach_id">'
             . $opts . '</select><small>Required for a coach login.</small></div>'
             . '</div>';
+        $h .= fn_check('can_manage_photos', 'Can manage the photo gallery', !empty($u['can_manage_photos']),
+            'For a coach login. Admins always can.');
         return $h . fn_actions('Save', '/admin/users') . '</form>';
     };
 

@@ -20,6 +20,9 @@ CREATE TABLE users (
     role VARCHAR(20) NOT NULL DEFAULT 'coach',   -- 'admin' | 'coach'
     -- Which profile this account owns. NULL for admins.
     coach_id INT UNSIGNED NULL,
+    -- A coach who also looks after the gallery. Admins can do everything
+    -- regardless; this only widens a coach login.
+    can_manage_photos TINYINT(1) NOT NULL DEFAULT 0,
     last_login_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
