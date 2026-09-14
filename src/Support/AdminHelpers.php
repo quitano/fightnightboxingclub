@@ -56,6 +56,7 @@ function fn_admin_shell(string $title, string $body, string $active = '', string
   </div>
 </header>
 <main class="awrap">' . $flashHtml . '<h1>' . fn_e($title) . '</h1>' . $body . '</main>
+<script src="/js/shrink-upload.js" defer></script>
 </body>
 </html>';
 }

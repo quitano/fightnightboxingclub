@@ -22,30 +22,61 @@
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+/* A short page — Contact, an empty Gallery — would otherwise leave the footer
+   floating halfway up with grey below it. The column layout pins it to the
+   bottom of the viewport without making it position:fixed, so on a long page it
+   still scrolls away properly. */
 body { margin:0; font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;
-       color:var(--ink); background:var(--page); }
+       color:var(--ink); background:var(--page);
+       min-height:100vh; display:flex; flex-direction:column; }
+main { flex:1 0 auto; }
+.foot { flex-shrink:0; }
 img { max-width:100%; }
 a { color:var(--blue); }
 
 /* ---- header ------------------------------------------------------------ */
 .nav { position:sticky; top:0; z-index:50;
-       display:flex; align-items:center; justify-content:space-between;
-       gap:1rem; flex-wrap:wrap; padding:.7rem 1.25rem;
+       display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+       gap:1rem;
+       padding-top:.7rem; padding-bottom:.7rem;
+       padding-left:max(1.25rem, calc((100% - 980px) / 2));
+       padding-right:max(1.25rem, calc((100% - 980px) / 2));
        /* Blood red bar, as the old site had it, with black beneath. */
        background:linear-gradient(90deg,#6a0b10 0%,#a11219 50%,#6a0b10 100%);
        border-bottom:3px solid #05070c; }
 .brand { display:flex; align-items:center; gap:.6rem; color:#fff;
-         text-decoration:none; font-weight:800; }
-.brand img { height:46px; width:auto; display:block; }
+         text-decoration:none; font-weight:800;
+         justify-self:start; }
+.brand img { height:58px; width:auto; display:block; }
 .brand span { font-size:1.05rem; letter-spacing:.6px; white-space:nowrap; }
 .brand span em { font-style:normal; color:rgba(255,255,255,.75); }
-.nav nav { display:flex; gap:1.25rem; flex-wrap:wrap; }
+.nav nav { display:flex; gap:1.25rem; flex-wrap:wrap; justify-content:center;
+           justify-self:center; }
+
+.nav-spacer { justify-self:end; }
+
+/* Hidden on desktop; the media query below turns it on. Three bars that become
+   an X, so the open state is obvious without a label. */
+.burger { display:none; background:none; border:0; cursor:pointer; padding:.4rem;
+          width:42px; height:36px; }
+.burger span { display:block; width:24px; height:2px; margin:5px auto;
+               background:#fff; border-radius:2px;
+               transition:transform .2s ease, opacity .2s ease; }
+.burger.is-open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+.burger.is-open span:nth-child(2) { opacity:0; }
+.burger.is-open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
 .nav nav a { color:var(--on-dark); text-decoration:none; font-weight:600;
              font-size:.92rem; text-transform:uppercase; letter-spacing:.4px; }
 .nav nav a { color:rgba(255,255,255,.82); }
 .nav nav a:hover, .nav nav a.active { color:#fff; }
 
-main { max-width:1100px; margin:0 auto; padding:2rem 1.25rem 1rem; }
+/* A white panel on the grey page, so the content reads as a contained sheet
+   rather than text floating on a background. Narrower than the old 1100px —
+   long lines are harder to read and the page looked sprawling on a wide
+   monitor. */
+main { width:100%; max-width:980px; margin:2rem auto; padding:2.25rem 2rem 2.75rem;
+       background:#fff; border-radius:12px;
+       box-shadow:0 1px 3px rgba(0,0,0,.08), 0 8px 28px rgba(0,0,0,.06); }
 
 /* ---- headings ---------------------------------------------------------- */
 h1 { font-size:clamp(1.9rem,5vw,2.9rem); line-height:1.12; margin:0 0 .6rem;
@@ -81,13 +112,22 @@ main h2::after { content:""; display:block; width:52px; height:4px;
   display:grid; gap:1.25rem;
   grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));
 }
+/* Promotions carry images of wildly different shapes — a landscape photo one
+   month, a portrait flyer the next. Let each card be its own height. */
+.promo-grid { align-items:start; }
 /* The same black-into-navy gradient fightnights uses on its cards, so the two
    sites read as one hand. */
 .promo, .tier, .coach {
   background:linear-gradient(160deg,#0d1b2e 0%,#173250 55%,#0d1b2e 100%);
   color:#fff; border-radius:10px; overflow:hidden;
   display:flex; flex-direction:column; }
-.promo img { width:100%; height:180px; object-fit:cover; display:block; }
+/* Never crop a promotion image. A flyer is mostly text — a fixed height with
+   object-fit:cover was slicing the middle out of it and throwing away the part
+   that mattered. Natural height instead, capped so one very tall flyer cannot
+   run away with the page, and `contain` for anything beyond the cap so it
+   letterboxes rather than crops. */
+.promo img { width:100%; height:auto; max-height:560px; object-fit:contain;
+             display:block; background:#05070c; }
 .promo-body { padding:1.25rem; display:flex; flex-direction:column; flex:1; }
 .promo-body h3 { margin:0 0 .5rem; font-size:1.25rem; color:#fff; }
 .promo-body p, .tier p { color:var(--on-dark); }
@@ -151,23 +191,34 @@ main h2::after { content:""; display:block; width:52px; height:4px;
 .foot { margin-top:3rem; padding:2.25rem 1.25rem 1.5rem;
         background:linear-gradient(90deg,#05070c 0%,#141a24 50%,#080b11 100%);
         color:var(--on-dark); font-size:.92rem; border-top:3px solid var(--red); }
-.foot-grid { max-width:1100px; margin:0 auto; display:grid; gap:1.75rem;
+.foot-grid { max-width:980px; margin:0 auto; display:grid; gap:1.75rem;
              grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); }
 .foot strong { color:#fff; }
 .foot a { color:#fff; text-decoration:none; }
 .foot a:hover { text-decoration:underline; }
-.copy { max-width:1100px; margin:1.75rem auto 0; padding-top:1.25rem;
+.copy { max-width:980px; margin:1.75rem auto 0; padding-top:1.25rem;
         border-top:1px solid var(--line); font-size:.82rem; }
 
 /* ---- mobile ------------------------------------------------------------ */
 @media (max-width: 720px) {
-  .nav { flex-direction:column; align-items:flex-start; gap:.6rem; padding:.75rem 1rem; }
+  /* Brand left, burger right. The menu drops underneath as a full-width panel
+     when opened, so it never competes with the logo for space. */
+  .nav { grid-template-columns:1fr auto; gap:.5rem;
+         padding:.6rem 1rem; }
+  .brand { justify-self:start; }
+  .nav nav { justify-self:stretch; }
+  .nav-spacer { display:none; }
+  .burger { display:block; justify-self:end; }
+
+  .nav nav { grid-column:1 / -1; display:none; width:100%;
+             flex-direction:column; gap:0; padding-top:.5rem; }
+  .nav nav.open { display:flex; }
+  .nav nav a { padding:.75rem .25rem; width:100%;
+               border-top:1px solid rgba(255,255,255,.18); font-size:1rem; }
   /* The nav scrolls sideways rather than wrapping into three ragged rows. */
-  .nav nav { width:100%; gap:1rem; overflow-x:auto; padding-bottom:.25rem;
-             -webkit-overflow-scrolling:touch; }
-  .nav nav a { white-space:nowrap; }
-  .brand img { height:40px; }
-  main { padding:1.5rem 1rem 1rem; }
+
+  .brand img { height:46px; }
+  main { margin:1rem auto; padding:1.5rem 1.15rem 2rem; border-radius:10px; }
   .contact-line { font-size:1.05rem; }
   .btn { display:block; text-align:center; }
   .btn-sm { display:inline-block; }
@@ -180,3 +231,45 @@ main h2::after { content:""; display:block; width:52px; height:4px;
           text-transform:uppercase; letter-spacing:.5px; }
 .agetag.big { font-size:.85rem; padding:.3rem .8rem; }
 .classhero { width:100%; max-height:380px; object-fit:cover; border-radius:10px; margin:1.25rem 0; }
+
+/* --- gallery lightbox ---------------------------------------------------- */
+/* Thumbnails have to look clickable before anyone clicks one. */
+.gallery figure { cursor:zoom-in; position:relative; transition:transform .15s ease; }
+.gallery figure:hover { transform:translateY(-2px); }
+.gallery figure:focus-visible { outline:3px solid var(--red); outline-offset:2px; }
+.gallery figure::after {
+  content:"⤢"; position:absolute; top:.5rem; right:.5rem;
+  width:28px; height:28px; line-height:28px; text-align:center;
+  background:rgba(5,7,12,.7); color:#fff; border-radius:5px;
+  font-size:.9rem; opacity:0; transition:opacity .15s ease;
+}
+.gallery figure:hover::after, .gallery figure:focus-visible::after { opacity:1; }
+
+.lb { position:fixed; inset:0; z-index:200; display:none;
+      align-items:center; justify-content:center;
+      background:rgba(5,7,12,.94); padding:1rem; }
+.lb.is-open { display:flex; }
+.lb-stage { margin:0; max-width:100%; max-height:100%;
+            display:flex; flex-direction:column; align-items:center; gap:.75rem; }
+.lb-stage img { max-width:100%; max-height:82vh; width:auto; height:auto;
+                display:block; border-radius:6px; }
+.lb-stage figcaption { color:rgba(255,255,255,.85); font-size:.95rem;
+                       text-align:center; max-width:60ch; }
+
+.lb button { position:absolute; background:rgba(255,255,255,.1); color:#fff;
+             border:0; cursor:pointer; border-radius:6px; line-height:1;
+             transition:background .15s ease; }
+.lb button:hover { background:var(--red); }
+.lb-close { top:1rem; right:1rem; width:44px; height:44px; font-size:1.9rem; }
+.lb-prev, .lb-next { top:50%; transform:translateY(-50%);
+                     width:48px; height:64px; font-size:2.2rem; }
+.lb-prev { left:1rem; }
+.lb-next { right:1rem; }
+
+@media (max-width: 720px) {
+  /* Arrows sit at the bottom on a phone — at the sides they land under your
+     thumbs and over the photo. Swiping works too. */
+  .lb-prev, .lb-next { top:auto; bottom:1rem; transform:none; height:48px; width:56px; }
+  .lb-stage img { max-height:70vh; }
+  .gallery figure::after { opacity:1; }   /* no hover on touch */
+}

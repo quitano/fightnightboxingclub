@@ -139,7 +139,11 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
 <body>
 <header class="nav">
   <a class="brand" href="/">' . $brand . '</a>
-  <nav>' . $navHtml . '</nav>
+  <button class="burger" type="button" aria-expanded="false" aria-controls="mainnav" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <nav id="mainnav">' . $navHtml . '</nav>
+  <div class="nav-spacer" aria-hidden="true"></div>
 </header>
 <main>' . $body . '</main>
 <footer class="foot">
@@ -163,6 +167,28 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
   </div>
   <p class="copy">&copy; ' . date('Y') . ' FightNight Boxing Club</p>
 </footer>
+<script src="/js/lightbox.js" defer></script>
+<script>
+(function () {
+  var burger = document.querySelector(".burger");
+  var nav = document.getElementById("mainnav");
+  if (!burger || !nav) return;
+  burger.addEventListener("click", function () {
+    var open = nav.classList.toggle("open");
+    burger.setAttribute("aria-expanded", open ? "true" : "false");
+    burger.classList.toggle("is-open", open);
+  });
+  // Tapping a link should close the menu — on a single-page-feeling site it
+  // otherwise stays open over the page you just navigated to.
+  nav.addEventListener("click", function (e) {
+    if (e.target.tagName === "A") {
+      nav.classList.remove("open");
+      burger.classList.remove("is-open");
+      burger.setAttribute("aria-expanded", "false");
+    }
+  });
+})();
+</script>
 </body>
 </html>';
 }

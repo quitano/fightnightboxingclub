@@ -31,7 +31,18 @@ class Uploads
         'webp' => [IMAGETYPE_WEBP],
     ];
 
-    private const MAX_BYTES = 8 * 1024 * 1024;   // 8MB — a phone photo, not a video
+    /**
+     * A backstop, not the everyday limit.
+     *
+     * public/js/shrink-upload.js resizes in the browser first, so a normal phone
+     * photo arrives well under a megabyte. This catches the cases it could not
+     * handle — an old browser, or a file that is not really an image.
+     *
+     * PHP's own upload_max_filesize still applies and is lower by default (2M).
+     * When that is what rejects a file the error arrives as UPLOAD_ERR_INI_SIZE,
+     * which is why the message below names it rather than saying "try again".
+     */
+    private const MAX_BYTES = 25 * 1024 * 1024;
 
     /**
      * Stores an uploaded file and returns its public path, or null when there
@@ -44,7 +55,16 @@ class Uploads
             return null;
         }
         if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
-            throw new RuntimeException('That file did not upload cleanly. Try again.');
+            throw new RuntimeException(match ($uploadedFile->getError()) {
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE =>
+                    'That file is larger than the server accepts ('
+                    . ini_get('upload_max_filesize') . '). Raise upload_max_filesize '
+                    . 'and post_max_size in php.ini.',
+                UPLOAD_ERR_PARTIAL  => 'The upload was cut off part way. Try again.',
+                UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE =>
+                    'The server could not write the file. Check the temp directory.',
+                default => 'That file did not upload cleanly. Try again.',
+            });
         }
         if ($uploadedFile->getSize() > self::MAX_BYTES) {
             throw new RuntimeException('That image is over 8MB. Please shrink it first.');
