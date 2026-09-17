@@ -140,6 +140,27 @@ main h2::after { content:""; display:block; width:52px; height:4px;
 .price { font-size:2.6rem; font-weight:800; margin:.15rem 0 .6rem; color:var(--red); }
 .price span { font-size:.95rem; font-weight:600; color:var(--on-dark); }
 
+/* The badge sits in the card's top-right corner rather than across it: the
+   name is the thing to read first, and a real ribbon would cover it. The card
+   is already position-relative-free, so this needs the anchor. */
+.tier { position:relative; }
+.tier-badge { position:absolute; top:0; right:0;
+              background:var(--red); color:#fff; font-size:.7rem; font-weight:700;
+              text-transform:uppercase; letter-spacing:.6px;
+              padding:.3rem .7rem; border-bottom-left-radius:6px; }
+/* Leave room so a long name never runs under the badge. */
+.tier-badge + h3 { padding-right:5.5rem; }
+
+/* Ticks rather than bullets — this is a list of what you get, and a tick reads
+   as included in a way a dot does not. */
+.tier-includes { list-style:none; padding:0; margin:.4rem 0 1rem; }
+.tier-includes li { position:relative; padding:.25rem 0 .25rem 1.5rem;
+                    color:var(--on-dark); font-size:.95rem; }
+.tier-includes li::before { content:"✓"; position:absolute; left:0; top:.25rem;
+                            color:var(--red); font-weight:800; }
+
+.more { margin:1.25rem 0 0; }
+
 /* ---- coaches ----------------------------------------------------------- */
 .coach-head { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
               padding:1.25rem 1.25rem 0; }

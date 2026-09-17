@@ -78,15 +78,53 @@ function fn_paragraphs(?string $text): string
 }
 
 /**
+ * One membership card.
+ *
+ * The same card on the home page, the memberships page and a class page — one
+ * renderer, so a price or a badge never looks different depending on where you
+ * landed. The button always goes to PunchPass: this site says what things cost,
+ * PunchPass takes the money.
+ */
+function fn_membership_card(array $m): string
+{
+    $h = '<article class="tier">';
+    if (!empty($m['badge'])) {
+        $h .= '<span class="tier-badge">' . fn_e($m['badge']) . '</span>';
+    }
+    $h .= '<h3>' . fn_e($m['name']) . '</h3>';
+    if ($m['price'] !== null) {
+        // Whole dollars — the admin rounds cents away, so this never has any.
+        $h .= '<p class="price">$' . number_format((float) $m['price'], 0)
+            . '<span>/' . fn_e($m['period'] ?: 'month') . '</span></p>';
+    }
+    $h .= fn_paragraphs($m['description'] ?? '');
+
+    $includes = MembershipRepository::lines($m['includes'] ?? null);
+    if ($includes) {
+        $h .= '<ul class="tier-includes">';
+        foreach ($includes as $i) {
+            $h .= '<li>' . fn_e($i) . '</li>';
+        }
+        $h .= '</ul>';
+    }
+
+    if (!empty($m['punchpass_url'])) {
+        $h .= '<a class="btn btn-sm" href="' . fn_e($m['punchpass_url']) . '" rel="noopener">Sign Up</a>';
+    }
+    return $h . '</article>';
+}
+
+/**
  * The page wrapper.
  *
- * Schedule and Membership are outbound PunchPass links by design, not routes —
- * PunchPass owns classes, bookings and memberships.
+ * Schedule is an outbound PunchPass link by design — PunchPass owns the
+ * timetable and the bookings. Membership is a page here, because the club sells
+ * more than the two passes PunchPass lists first and wants to say what each one
+ * includes; the Sign Up buttons on it still go to PunchPass.
  */
 function fn_page_shell(string $title, string $metaDescription, string $body, string $active = ''): string
 {
     $classesUrl = fn_e(fn_punchpass('classes'));
-    $passes  = fn_e(fn_punchpass('passes'));
     $phone   = fn_setting('phone');
     $address = fn_setting('address');
     $hours   = fn_setting('hours');
@@ -107,7 +145,7 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
         '/personal-training' => ['Personal Training', 'training'],
         '/gallery'           => ['Gallery', 'gallery'],
         $classesUrl          => ['Schedule', 'schedule'],
-        $passes              => ['Membership', 'membership'],
+        '/memberships'       => ['Membership', 'membership'],
         '/contact'           => ['Contact', 'contact'],
     ];
     $navHtml = '';
@@ -159,7 +197,7 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
     </div>
     <div>
       <a href="' . $classesUrl . '" rel="noopener">Class schedule</a><br>
-      <a href="' . $passes . '" rel="noopener">Memberships</a><br>
+      <a href="/memberships">Memberships</a><br>
       <a href="/classes">Classes</a><br>
       <a href="/personal-training">Personal training</a><br>
       <a href="/contact">Contact</a>

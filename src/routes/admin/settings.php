@@ -15,6 +15,7 @@ return function ($app, $repos) {
         'cta_label'  => ['Main button text', '', false],
         'training_intro'  => ['Personal training intro', 'Top of the Personal Training page.', true],
         'training_prices' => ['Standard training prices', 'One per line. Coaches with their own rates override this.', true],
+        'memberships_intro' => ['Memberships intro', 'The line above the cards on the Memberships page.', true],
     ];
 
     $app->get('/admin/settings', function ($request, $response) use ($repos, $fields) {

@@ -52,6 +52,7 @@ return function ($app, $repos) {
     (require __DIR__ . '/admin/dashboard.php')($app, $repos);
     (require __DIR__ . '/admin/coaches.php')($app, $repos);
     (require __DIR__ . '/admin/classes.php')($app, $repos);
+    (require __DIR__ . '/admin/memberships.php')($app, $repos);
     (require __DIR__ . '/admin/promotions.php')($app, $repos);
     (require __DIR__ . '/admin/photos.php')($app, $repos);
     (require __DIR__ . '/admin/settings.php')($app, $repos);

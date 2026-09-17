@@ -18,6 +18,7 @@ function fn_admin_shell(string $title, string $body, string $active = '', string
             '/admin'            => ['Dashboard', 'dashboard'],
             '/admin/coaches'    => ['Coaches', 'coaches'],
             '/admin/classes'    => ['Classes', 'classes'],
+            '/admin/memberships'=> ['Memberships', 'memberships'],
             '/admin/promotions' => ['Promotions', 'promotions'],
             '/admin/photos'     => ['Gallery', 'photos'],
             '/admin/settings'   => ['Settings', 'settings'],
@@ -79,6 +80,26 @@ function fn_area(string $name, string $label, $value = '', int $rows = 4, string
     return '<div class="f"><label for="f_' . fn_e($name) . '">' . fn_e($label) . '</label>
         <textarea id="f_' . fn_e($name) . '" name="' . fn_e($name) . '" rows="' . $rows . '">'
         . fn_e((string) $value) . '</textarea>'
+        . ($hint !== '' ? '<small>' . fn_e($hint) . '</small>' : '') . '</div>';
+}
+
+/**
+ * A labelled dropdown.
+ *
+ * Takes either a plain list — where each entry is both the value and the label,
+ * as with the membership periods — or a value => label map, as with the class
+ * picker where the value is an id nobody should have to see.
+ */
+function fn_select(string $name, string $label, array $options, $value = '', string $hint = ''): string
+{
+    $h = '<div class="f"><label for="f_' . fn_e($name) . '">' . fn_e($label) . '</label>
+        <select id="f_' . fn_e($name) . '" name="' . fn_e($name) . '">';
+    foreach ($options as $k => $v) {
+        $optValue = is_int($k) ? (string) $v : (string) $k;
+        $h .= '<option value="' . fn_e($optValue) . '"'
+            . ($optValue === (string) $value ? ' selected' : '') . '>' . fn_e((string) $v) . '</option>';
+    }
+    return $h . '</select>'
         . ($hint !== '' ? '<small>' . fn_e($hint) . '</small>' : '') . '</div>';
 }
 

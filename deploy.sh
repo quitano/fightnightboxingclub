@@ -21,3 +21,10 @@ mkdir -p public/uploads
 chmod 775 public/uploads
 
 echo "Deploy complete."
+# There is no migration runner, and adding one that guesses which statements
+# have already run is worse than a reminder. schema-changes.sql is in commit
+# order, so the ones below the last block you applied are the ones outstanding.
+echo
+echo "Reminder: if this release added columns, apply them by hand —"
+echo "  mysql -u <user> -p <database> < database/schema-changes.sql"
+echo "Running a block twice is an error, not damage; skip what is already there."

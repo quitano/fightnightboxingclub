@@ -5,9 +5,14 @@ declare(strict_types=1);
 /**
  * The public site.
  *
- * Schedule and Membership are not routes — they are outbound links to
- * PunchPass, which owns classes, bookings and memberships. Reproducing any of
- * it here would create a second member list that disagrees with the first.
+ * Schedule is not a route — it is an outbound link to PunchPass, which owns the
+ * timetable and the bookings. Reproducing that here would create a second
+ * member list that disagrees with the first.
+ *
+ * Memberships are different: what the club sells and what each one includes is
+ * copy, not booking state, and the club sells more than the two passes PunchPass
+ * puts up front. So the prices live here and every Sign Up button still hands
+ * off to PunchPass to take the money.
  */
 return function ($app, $repos) {
     $coaches     = $repos['coaches'];
@@ -64,22 +69,17 @@ return function ($app, $repos) {
             $html .= '</div></section>';
         }
 
-        $tiers = $memberships->published();
+        // Only the ones ticked for the home page — the two main memberships.
+        // Extras like a Summer or Kids membership live on /memberships, so
+        // adding one never quietly rearranges the front page.
+        $tiers = $memberships->forHome(date('Y-m-d'));
         if ($tiers) {
             $html .= '<section><h2>Memberships</h2><div class="tier-grid">';
             foreach ($tiers as $t) {
-                $html .= '<article class="tier"><h3>' . fn_e($t['name']) . '</h3>';
-                if ($t['price'] !== null) {
-                    $html .= '<p class="price">$' . number_format((float) $t['price'], 0)
-                        . '<span>/' . fn_e($t['period'] ?: 'month') . '</span></p>';
-                }
-                $html .= fn_paragraphs($t['description'] ?? '');
-                if (!empty($t['punchpass_url'])) {
-                    $html .= '<a class="btn btn-sm" href="' . fn_e($t['punchpass_url']) . '" rel="noopener">Join</a>';
-                }
-                $html .= '</article>';
+                $html .= fn_membership_card($t);
             }
-            $html .= '</div></section>';
+            $html .= '</div>'
+                . '<p class="more"><a href="/memberships">See all memberships</a></p></section>';
         }
 
         $html .= '<div class="info-banner">
@@ -189,7 +189,7 @@ return function ($app, $repos) {
         return $response;
     });
 
-    $app->get('/classes/{slug}', function ($request, $response, $args) use ($classes) {
+    $app->get('/classes/{slug}', function ($request, $response, $args) use ($classes, $memberships) {
         $c = $classes->findBySlug((string) $args['slug']);
         if (!$c) {
             $response->getBody()->write(fn_page_shell('Not found', '', '<h1>Not found</h1>
@@ -212,6 +212,19 @@ return function ($app, $repos) {
         // to the general schedule otherwise.
         $book = !empty($c['punchpass_url']) ? $c['punchpass_url'] : fn_punchpass('classes');
         $html .= '<a class="btn" href="' . fn_e($book) . '" rel="noopener">Book this class</a>';
+
+        // A membership attached to this class — a Kids membership under Kids
+        // Boxing. Most classes have none, and then this section is not there at
+        // all rather than being an empty heading.
+        $tiers = $memberships->forClass((int) $c['id'], date('Y-m-d'));
+        if ($tiers) {
+            $html .= '<section><h2>Membership for this class</h2><div class="tier-grid">';
+            foreach ($tiers as $t) {
+                $html .= fn_membership_card($t);
+            }
+            $html .= '</div><p class="more"><a href="/memberships">See all memberships</a></p></section>';
+        }
+
         $html .= '<p class="muted" style="margin-top:2rem;"><a href="/classes">← All classes</a></p>';
 
         $response->getBody()->write(fn_page_shell(
@@ -219,6 +232,47 @@ return function ($app, $repos) {
             $c['summary'] ?: ($c['name'] . ' at FightNight Boxing Club.'),
             $html,
             'classes'
+        ));
+        return $response;
+    });
+
+    /* --------------------------------------------------------- memberships */
+    /**
+     * Every membership currently on sale, main ones first.
+     *
+     * sort_order already puts the two main memberships at the top, so this is a
+     * plain list rather than two sections — a "Main" heading above two cards and
+     * an "Extras" heading above one reads as a filing system, not an offer.
+     */
+    $app->get('/memberships', function ($request, $response) use ($memberships) {
+        $list = $memberships->live(date('Y-m-d'));
+
+        $html = '<h1>Memberships</h1>';
+        if (!$list) {
+            $html .= '<p class="muted">Membership details are on their way. '
+                . '<a href="' . fn_e(fn_punchpass('passes')) . '" rel="noopener">See what\'s on PunchPass</a>.</p>';
+        } else {
+            // Only when it is actually set. A code-side default would come back
+            // the moment someone cleared the box, because the settings form
+            // writes every key and get() only falls back when the key is absent.
+            $intro = fn_setting('memberships_intro');
+            if ($intro !== '') {
+                $html .= '<p class="lead">' . fn_e($intro) . '</p>';
+            }
+            $html .= '<div class="tier-grid">';
+            foreach ($list as $m) {
+                $html .= fn_membership_card($m);
+            }
+            $html .= '</div>';
+        }
+        $html .= '<p class="muted" style="margin-top:2rem;">Memberships are billed through PunchPass. '
+            . 'Not sure which one you want? <a href="/contact">Talk to us</a> — or just come in.</p>';
+
+        $response->getBody()->write(fn_page_shell(
+            'Memberships',
+            'Membership options and prices at FightNight Boxing Club, Niagara Falls NY.',
+            $html,
+            'membership'
         ));
         return $response;
     });
@@ -280,9 +334,9 @@ return function ($app, $repos) {
               </div>
               <div>
                 <h3>Book a class</h3>
-                <p>Classes and memberships are handled through PunchPass.</p>
+                <p>The schedule and the billing are handled through PunchPass.</p>
                 <a class="btn btn-sm" href="' . fn_e(fn_punchpass('classes')) . '" rel="noopener">See the schedule</a>
-                <a class="btn btn-sm" href="' . fn_e(fn_punchpass('passes')) . '" rel="noopener">Memberships</a>
+                <a class="btn btn-sm" href="/memberships">Memberships</a>
               </div>
             </div>';
         $response->getBody()->write(fn_page_shell(
