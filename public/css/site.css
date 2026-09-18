@@ -165,7 +165,10 @@ main h2::after { content:""; display:block; width:52px; height:4px;
 .coach-head { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
               padding:1.25rem 1.25rem 0; }
 .coach-head h3 { margin:0; font-size:1.5rem; color:#fff; }
-.coach-head a { background:var(--red); color:#fff; font-size:.78rem; font-weight:700;
+/* The direct child only — that is the phone button. The name is a link too now,
+   nested in the h3, and a bare `.coach-head a` turned it into a second red pill
+   the same size as the phone number. */
+.coach-head > a { background:var(--red); color:#fff; font-size:.78rem; font-weight:700;
                 padding:.3rem .65rem; border-radius:4px; text-decoration:none;
                 white-space:nowrap; }
 /* White, not the red accent. This sits on the dark navy card, where the blood
@@ -207,8 +210,11 @@ main h2::after { content:""; display:block; width:52px; height:4px;
                    text-transform:uppercase; letter-spacing:.6px; }
 .profile-body ul { margin:0; padding-left:1.15rem; }
 .profile-body li { margin-bottom:.2rem; }
-/* The name on the team page is now a link through to this. */
-.coach-head h3 a { color:#fff; text-decoration:none; }
+/* The name on the team page links through to this page. It stays exactly what
+   it looked like before it was a link — the h3's size and white — because the
+   heading is the thing you read, not a button. Underline only on hover, so
+   there is still a hint that it goes somewhere. */
+.coach-head h3 a { color:#fff; font:inherit; text-decoration:none; }
 .coach-head h3 a:hover { text-decoration:underline; }
 
 /* ---- info banner ------------------------------------------------------- */

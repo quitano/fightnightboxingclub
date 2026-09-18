@@ -59,6 +59,21 @@ function fn_tel_link(string $phone, string $label = ''): string
         . htmlspecialchars($label !== '' ? $label : $phone) . '</a>';
 }
 
+/**
+ * An asset URL with the file's own timestamp on it.
+ *
+ * /css/site.css?v=1758... — the browser treats a changed query as a different
+ * file, so a style change shows up immediately instead of after a hard refresh,
+ * while an unchanged file still caches properly. Falls back to the plain path if
+ * the file is missing, rather than emitting "?v=".
+ */
+function fn_asset(string $path): string
+{
+    $file = __DIR__ . '/../../public' . $path;
+    $v = is_file($file) ? filemtime($file) : 0;
+    return $v ? $path . '?v=' . $v : $path;
+}
+
 function fn_e(?string $s): string
 {
     return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
@@ -198,7 +213,7 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
 <meta property="og:title" content="' . fn_e($title) . '">
 <meta property="og:description" content="' . fn_e($metaDescription) . '">
 <meta property="og:type" content="website">
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="' . fn_e(fn_asset('/css/site.css')) . '">
 </head>
 <body>
 <header class="nav">
@@ -231,7 +246,7 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
   </div>
   <p class="copy">&copy; ' . date('Y') . ' FightNight Boxing Club</p>
 </footer>
-<script src="/js/lightbox.js" defer></script>
+<script src="' . fn_e(fn_asset('/js/lightbox.js')) . '" defer></script>
 <script>
 (function () {
   var burger = document.querySelector(".burger");

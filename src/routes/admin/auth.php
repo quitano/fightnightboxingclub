@@ -13,7 +13,7 @@ return function ($app, $repos) {
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Log in — FightNight Boxing Club</title>
-<link rel="stylesheet" href="/css/admin.css"></head>
+<link rel="stylesheet" href="' . fn_e(fn_asset('/css/admin.css')) . '"></head>
 <body class="loginpage">
   <form method="post" action="/admin/login" class="loginbox">
     <h1>FIGHT NIGHT <em>ADMIN</em></h1>' . $err . '

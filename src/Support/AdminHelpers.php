@@ -47,7 +47,7 @@ function fn_admin_shell(string $title, string $body, string $active = '', string
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>' . fn_e($title) . ' — Admin</title>
-<link rel="stylesheet" href="/css/admin.css">
+<link rel="stylesheet" href="' . fn_e(fn_asset('/css/admin.css')) . '">
 </head>
 <body>
 <header class="abar">
@@ -60,7 +60,7 @@ function fn_admin_shell(string $title, string $body, string $active = '', string
   </div>
 </header>
 <main class="awrap">' . $flashHtml . '<h1>' . fn_e($title) . '</h1>' . $body . '</main>
-<script src="/js/shrink-upload.js" defer></script>
+<script src="' . fn_e(fn_asset('/js/shrink-upload.js')) . '" defer></script>
 </body>
 </html>';
 }
