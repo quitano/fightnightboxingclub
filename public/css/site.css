@@ -168,7 +168,11 @@ main h2::after { content:""; display:block; width:52px; height:4px;
 .coach-head a { background:var(--red); color:#fff; font-size:.78rem; font-weight:700;
                 padding:.3rem .65rem; border-radius:4px; text-decoration:none;
                 white-space:nowrap; }
-.coach-role { margin:.4rem 1.25rem 0; color:var(--red); font-weight:700;
+/* White, not the red accent. This sits on the dark navy card, where the blood
+   red scores about 1.3:1 against the background — legible as a shape, not as
+   words, and small uppercase text is the worst case for it. The red still
+   brackets the cards elsewhere; it just cannot carry copy on this background. */
+.coach-role { margin:.4rem 1.25rem 0; color:#fff; font-weight:700;
               text-transform:uppercase; font-size:.8rem; letter-spacing:.5px; }
 .coach img { width:100%; display:block; margin-top:1rem; }
 .coach-body { padding:1.25rem; color:var(--on-dark); }
