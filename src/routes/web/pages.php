@@ -98,7 +98,19 @@ return function ($app, $repos) {
     });
 
     /* --------------------------------------------------- personal training */
-    $app->get('/personal-training', function ($request, $response) use ($coaches) {
+    /**
+     * The old URL, kept alive on purpose.
+     *
+     * 301 rather than a second copy of the page: it moves the search ranking
+     * this page already has onto the new URL, and anything pointing at the old
+     * one — a printed card, a Facebook post, someone's bookmark — still lands in
+     * the right place instead of on a 404.
+     */
+    $app->get('/personal-training', function ($request, $response) {
+        return $response->withHeader('Location', '/meet-the-team')->withStatus(301);
+    });
+
+    $app->get('/meet-the-team', function ($request, $response) use ($coaches) {
         $html = '<section class="hero"><h1>Meet Our Team</h1>'
             . fn_paragraphs(fn_setting('training_intro',
                 'Private training sessions are personalized to your fitness goals. Sessions run 30 to 60 minutes and include a physical warmup, calisthenics, shadowboxing, mitt work and heavy bag work, plus strength and conditioning to build a fighter\'s mind, body and spirit.'))
@@ -148,8 +160,10 @@ return function ($app, $repos) {
         }
 
         $response->getBody()->write(fn_page_shell(
-            'Personal Training',
-            'Personal boxing and fitness training at FightNight Boxing Club, Niagara Falls NY.',
+            // Title matches the URL and the menu. The description still carries
+            // "personal training", which is what people actually search for.
+            'Meet the Team',
+            'Meet the coaches at FightNight Boxing Club, Niagara Falls NY — personal boxing and fitness training for all levels.',
             $html,
             'training'
         ));

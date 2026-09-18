@@ -142,9 +142,7 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
 
     $nav += [
         '/classes'           => ['Classes', 'classes'],
-        // Label only. The URL stays /personal-training — it is what the page
-        // ranks for and what any existing link points at.
-        '/personal-training' => ['Meet the Team', 'training'],
+        '/meet-the-team'     => ['Meet the Team', 'training'],
         '/gallery'           => ['Gallery', 'gallery'],
         $classesUrl          => ['Schedule', 'schedule'],
         '/memberships'       => ['Membership', 'membership'],
@@ -201,7 +199,7 @@ function fn_page_shell(string $title, string $metaDescription, string $body, str
       <a href="' . $classesUrl . '" rel="noopener">Class schedule</a><br>
       <a href="/memberships">Memberships</a><br>
       <a href="/classes">Classes</a><br>
-      <a href="/personal-training">Meet the team</a><br>
+      <a href="/meet-the-team">Meet the team</a><br>
       <a href="/contact">Contact</a>
     </div>
   </div>
