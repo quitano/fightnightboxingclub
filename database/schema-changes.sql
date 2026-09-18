@@ -105,3 +105,24 @@ UPDATE memberships SET show_on_home = 1
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
     ('memberships_intro',
      'Pick the membership that fits how you train. Sign up takes a minute and you can start today.');
+
+-- Each coach gets their own URL (2026-09-18).
+--
+-- Coaches advertise themselves — a card, an Instagram bio, a flyer — and had
+-- nowhere to point people except the team page, which lands you on everyone.
+-- The slug is its own column rather than derived from the name at render time,
+-- because the whole value of the URL is that it keeps working: fixing a typo in
+-- a name must not quietly invalidate what is already printed on a card.
+ALTER TABLE coaches ADD COLUMN slug VARCHAR(80) NULL AFTER name;
+
+-- Backfill from the names that are already there: "Kristen Alcime" ->
+-- "kristen-alcime". Done in SQL so the URLs exist the moment this runs, rather
+-- than waiting for someone to open and re-save each profile.
+UPDATE coaches
+   SET slug = TRIM(BOTH '-' FROM LOWER(REGEXP_REPLACE(name, '[^a-zA-Z0-9]+', '-')))
+ WHERE slug IS NULL OR slug = '';
+
+-- Unique only after the backfill, so the index is added to data that already
+-- satisfies it. Two coaches with the same name would collide here; the app's
+-- uniqueSlug() appends -2 and takes over from this point on.
+CREATE UNIQUE INDEX idx_coaches_slug ON coaches (slug);

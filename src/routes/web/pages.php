@@ -130,7 +130,13 @@ return function ($app, $repos) {
         if ($list) {
             $html .= '<div class="coach-grid">';
             foreach ($list as $c) {
-                $html .= '<article class="coach"><div class="coach-head"><h3>' . fn_e($c['name']) . '</h3>';
+                // The name is the way through to the coach's own page, which is
+                // the link they hand out. Falls back to plain text if a profile
+                // somehow has no slug, rather than rendering a link to "/".
+                $nameHtml = !empty($c['slug'])
+                    ? '<a href="/' . fn_e($c['slug']) . '">' . fn_e($c['name']) . '</a>'
+                    : fn_e($c['name']);
+                $html .= '<article class="coach"><div class="coach-head"><h3>' . $nameHtml . '</h3>';
                 if (!empty($c['phone'])) {
                     $html .= fn_tel_link($c['phone'], 'Call or Text: ' . $c['phone']);
                 }
@@ -356,6 +362,95 @@ return function ($app, $repos) {
         $response->getBody()->write(fn_page_shell(
             'Contact', 'Find FightNight Boxing Club at ' . fn_setting('address') . '.', $html, 'contact'
         ));
+        return $response;
+    });
+
+    /* ------------------------------------------------- a coach's own page */
+    /**
+     * /kristen-alcime — the link a coach can put on a card.
+     *
+     * Registered last and sitting at the root, which is the point: it is short
+     * enough to say out loud. The router matches literal routes before this one,
+     * so /contact and /classes are never at risk, and CoachRepository::RESERVED
+     * stops a coach being handed a URL that could never resolve.
+     *
+     * It also becomes the catch-all for anything unrecognised, so a wrong URL
+     * gets a real page rather than a bare error.
+     */
+    $app->get('/{coach}', function ($request, $response, $args) use ($coaches) {
+        $slug = (string) $args['coach'];
+
+        // Printed and spoken URLs arrive capitalised — a business card says
+        // /Kristen-Alcime. Send any other casing to the canonical lowercase one
+        // rather than 404ing on something that is obviously right.
+        $lower = strtolower($slug);
+        if ($lower !== $slug && $coaches->findBySlug($lower)) {
+            return $response->withHeader('Location', '/' . $lower)->withStatus(301);
+        }
+
+        $c = $coaches->findBySlug($lower);
+        if (!$c) {
+            $response->getBody()->write(fn_page_shell('Not found', '', '<h1>Not found</h1>
+                <p class="muted">That page does not exist. Try <a href="/meet-the-team">the team</a>,
+                <a href="/classes">classes</a> or <a href="/">the home page</a>.</p>'));
+            return $response->withStatus(404);
+        }
+
+        $html = '<article class="profile"><div class="profile-head">';
+        if (!empty($c['photo_path'])) {
+            $html .= '<img class="profile-photo" src="' . fn_e($c['photo_path']) . '" alt="' . fn_e($c['name']) . '">';
+        }
+        $html .= '<div><h1>' . fn_e($c['name']) . '</h1>';
+        if (!empty($c['role_title'])) {
+            $html .= '<p class="profile-role">' . fn_e($c['role_title']) . '</p>';
+        }
+
+        // The things someone came here to act on, before the reading.
+        $html .= '<p class="profile-actions">';
+        if (!empty($c['booking_url'])) {
+            $html .= '<a class="btn btn-sm" href="' . fn_e($c['booking_url']) . '" rel="noopener">Book a session</a>';
+        }
+        if (!empty($c['phone'])) {
+            $html .= '<a class="btn btn-sm btn-ghost" href="tel:'
+                . fn_e(preg_replace('/[^0-9+]/', '', $c['phone'])) . '">Call or text ' . fn_e($c['phone']) . '</a>';
+        }
+        $html .= '</p>';
+
+        $socials = '';
+        foreach (['instagram' => 'Instagram', 'facebook' => 'Facebook', 'tiktok' => 'TikTok'] as $key => $label) {
+            $url = fn_social_url($key, (string) ($c[$key] ?? ''));
+            if ($url !== '') {
+                $socials .= '<a href="' . fn_e($url) . '" rel="noopener">' . $label . '</a>';
+            }
+        }
+        if ($socials !== '') {
+            $html .= '<p class="profile-socials">' . $socials . '</p>';
+        }
+        $html .= '</div></div>';
+
+        $html .= '<div class="profile-body">' . fn_paragraphs($c['bio'] ?? '');
+        foreach ([
+            ['Certifications', $c['certifications'] ?? null],
+            ['Specialties',    $c['specialties'] ?? null],
+            ['Training rates', $c['rates'] ?? null],
+        ] as [$heading, $raw]) {
+            $items = CoachRepository::lines($raw);
+            if ($items) {
+                $html .= '<h2>' . $heading . '</h2><ul>';
+                foreach ($items as $i) {
+                    $html .= '<li>' . fn_e($i) . '</li>';
+                }
+                $html .= '</ul>';
+            }
+        }
+        $html .= '</div></article>';
+        $html .= '<p class="muted" style="margin-top:2rem;"><a href="/meet-the-team">← Meet the whole team</a></p>';
+
+        $summary = trim((string) ($c['role_title'] ?? '')) !== ''
+            ? $c['name'] . ' — ' . $c['role_title'] . ' at FightNight Boxing Club, Niagara Falls NY.'
+            : $c['name'] . ' at FightNight Boxing Club, Niagara Falls NY.';
+
+        $response->getBody()->write(fn_page_shell($c['name'], $summary, $html, 'training'));
         return $response;
     });
 };

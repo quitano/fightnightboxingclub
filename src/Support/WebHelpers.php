@@ -115,6 +115,32 @@ function fn_membership_card(array $m): string
 }
 
 /**
+ * A social link from whatever the coach typed.
+ *
+ * The admin field says "Full URL or @handle" and coaches use both, plus a bare
+ * "kristenboxing" and the occasional pasted link with tracking junk on it. Any
+ * of those has to come out as a working link, because the alternative is a
+ * profile page with a dead social button on it.
+ */
+function fn_social_url(string $platform, string $value): string
+{
+    $v = trim($value);
+    if ($v === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $v)) {
+        return $v;
+    }
+    $handle = ltrim($v, '@/');
+    return match ($platform) {
+        'instagram' => 'https://instagram.com/' . $handle,
+        'facebook'  => 'https://facebook.com/' . $handle,
+        'tiktok'    => 'https://tiktok.com/@' . $handle,
+        default     => '',
+    };
+}
+
+/**
  * The page wrapper.
  *
  * Schedule is an outbound PunchPass link by design — PunchPass owns the

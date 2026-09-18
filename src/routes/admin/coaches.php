@@ -42,6 +42,18 @@ return function ($app, $repos) {
         $action = $id ? '/admin/coaches/' . (int) $id : '/admin/coaches';
         $h = '<form method="post" action="' . $action . '" enctype="multipart/form-data">';
         $h .= fn_field('name', 'Name', $c['name'] ?? '');
+        // The coach's own page — the link they put on a card. Only an admin can
+        // change it, because changing it is what breaks whatever is already
+        // printed. A coach sees theirs, greyed out, so they know what to hand out.
+        if ($isAdmin) {
+            $h .= fn_field('slug', 'Their own URL', $c['slug'] ?? '', 'text',
+                'Leave empty to build it from the name. Changing this breaks any link already out there.',
+                'kristen-alcime');
+        } elseif (!empty($c['slug'])) {
+            $h .= '<div class="f"><label>Your own page</label>
+                <input type="text" value="' . fn_e(fn_absolute_url($c['slug'])) . '" readonly>
+                <small>Share this link. Ask an admin if it needs changing.</small></div>';
+        }
         $h .= fn_field('role_title', 'Title', $c['role_title'] ?? '', 'text', 'e.g. Head Coach');
         $h .= fn_photo_field($c['photo_path'] ?? null);
         $h .= fn_area('bio', 'Bio', $c['bio'] ?? '', 5, 'Leave a blank line between paragraphs.');
@@ -125,6 +137,14 @@ return function ($app, $repos) {
         }
 
         $d = $request->getParsedBody() ?? [];
+        // A coach's form shows their URL read-only, but readonly is a hint to
+        // the browser, not a rule — the field still posts and the markup can be
+        // edited. Only an admin's post is allowed to move a coach's URL, and
+        // dropping the key entirely leaves the stored slug alone, because
+        // update() writes only the fields it is given.
+        if (!Auth::isAdmin()) {
+            unset($d['slug']);
+        }
         try {
             $new = Uploads::store($request->getUploadedFiles()['photo'] ?? null);
         } catch (RuntimeException $e) {
